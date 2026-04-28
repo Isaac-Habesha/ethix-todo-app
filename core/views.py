@@ -1,10 +1,20 @@
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Todo, User
 
 
 def create_todo(request):
-    return HttpResponse("Create a new todo")
+    if request.method == "POST":
+        title = request.POST.get("title")
+        description = request.POST.get("description")
+        
+        if title:
+            user = User.objects.first() 
+            Todo.objects.create(title=title, description=description, user=user)
+            return redirect("core:get_todos")
+            
+    return render(request, "create.html")
+
 
 
 def get_todos(request):
@@ -34,5 +44,9 @@ def update_todo(request):
     return HttpResponse("Update a todo")
 
 
-def delelte_todo(request):
-    return HttpResponse("Delete a todo")
+def delete_todo(request, todo_id):
+    todo = get_object_or_404(Todo, pk=todo_id)
+    if request.method == "POST":
+        todo.delete()
+        return redirect("core:get_todos")
+    return render(request, "delete.html", {"todo": todo})
